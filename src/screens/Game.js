@@ -25,6 +25,7 @@ const longestWidth = width > height ? width : height;
 const isLargeScreen = longestWidth > 900;
 const BOARD_MARGIN = isLargeScreen ? 100 : 40;
 const TOUCH_POINT_SIZE = 26;
+const SHOW_TOUCH_POINTS = true;
 
 function Game() {
     const jigsawData = Constants.JIGSAW_DATA[2];
@@ -266,7 +267,7 @@ function Game() {
                                 );
                             })}
 
-                            {touchPoints.map((point, index) => (
+                            {SHOW_TOUCH_POINTS && touchPoints.map((point, index) => (
                                 <View
                                     key={index}
                                     style={{
