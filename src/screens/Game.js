@@ -26,6 +26,7 @@ const isLargeScreen = longestWidth > 900;
 const BOARD_MARGIN = isLargeScreen ? 100 : 40;
 const TOUCH_POINT_SIZE = 26;
 const SHOW_TOUCH_POINTS = true;
+const MODE = 1; // 1: พื้นหลังเป็นภาพสีจาง, 2: พื้นหลังเป็นสีดำ
 
 function Game() {
     const jigsawData = Constants.JIGSAW_DATA[2];
@@ -222,8 +223,8 @@ function Game() {
                     <View
                         style={{width: boardWidth, height: boardHeight, borderWidth: 0, borderColor: '#ccc'}}>
                         <ImageBackground
-                            style={{justifyContent: 'center', alignItems: 'center', width: '100%', height: '100%'}}
-                            source={boardImage}
+                            style={{backgroundColor: 'black', justifyContent: 'center', alignItems: 'center', width: '100%', height: '100%'}}
+                            source={MODE === 1 ? boardImage : null}
                             resizeMode={'contain'}
                         >
                             {pieces.map((piece, index) => {
