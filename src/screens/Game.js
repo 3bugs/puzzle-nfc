@@ -10,6 +10,7 @@ import {
     StatusBar,
     TouchableOpacity,
     Dimensions,
+    Alert,
 } from 'react-native';
 
 import NfcManager, {NfcEvents} from 'react-native-nfc-manager';
@@ -24,41 +25,47 @@ const {width, height} = Dimensions.get('window');
 const longestWidth = width > height ? width : height;
 const isLargeScreen = longestWidth > 900;
 const BOARD_MARGIN = isLargeScreen ? 100 : 40;
-const TOUCH_POINT_SIZE = 26;
+const TOUCH_POINT_SIZE = 45;
 const SHOW_TOUCH_POINTS = true;
 const MODE = 1; // 1: พื้นหลังเป็นภาพสีจาง, 2: พื้นหลังเป็นสีดำ
+let gameIndex = 0;
 
 function Game() {
-    const jigsawData = Constants.JIGSAW_DATA[2];
+    //const jigsawData = Constants.JIGSAW_DATA[0];
 
+    //console.log('TOUCH POINTS: ' + JSON.stringify(touchPoints));
+
+    //const boardImage = jigsawData.board.image;
+    //const {sound} = jigsawData;
+
+    const [jigsawData, setJigsawData] = useState(Constants.JIGSAW_DATA[gameIndex]);
     const touchPoints = [];
     jigsawData.pieces.forEach(piece => {
         piece.touches.forEach(touch => {
             touchPoints.push(touch);
         });
     });
-    //console.log('TOUCH POINTS: ' + JSON.stringify(touchPoints));
-
-    const boardImage = jigsawData.board.image;
-    const {sound} = jigsawData;
-
-    const [boardWidth, setBoardWidth] = useState(0);
-    const [boardHeight, setBoardHeight] = useState(0);
-    const [boardAndImageSourceRatio, setBoardAndImageSourceRatio] = useState(1.0);
     const [pieces, setPieces] = useState(jigsawData.pieces);
-    const [touches, setTouches] = useState([]);
-
     pieces.forEach((piece, index) => {
         const {width, height} = Image.resolveAssetSource(piece.image);
         piece.width = width;
         piece.height = height;
+        if (piece.visibleRun == null) {
+            piece.visibleRun = piece.visible;
+        }
         //piece.zIndex = index;
     });
+
+    const [boardWidth, setBoardWidth] = useState(0);
+    const [boardHeight, setBoardHeight] = useState(0);
+    const [boardAndImageSourceRatio, setBoardAndImageSourceRatio] = useState(1.0);
+
+    const [gameEnd, setGameEnd] = useState(false);
 
     let music = null;
     useEffect(() => {
         // Load the sound file from the app bundle
-        music = new Sound(sound, Sound.MAIN_BUNDLE, error => {
+        music = new Sound(jigsawData.sound, Sound.MAIN_BUNDLE, error => {
             if (error) {
                 console.log('failed to load the sound', error);
                 return;
@@ -133,7 +140,7 @@ function Game() {
 
         const {width: layoutWidth, height: layoutHeight} = e.nativeEvent.layout;
         const layoutRatio = layoutWidth / layoutHeight;
-        const {width: imageSourceWidth, height: imageSourceHeight} = Image.resolveAssetSource(boardImage);
+        const {width: imageSourceWidth, height: imageSourceHeight} = Image.resolveAssetSource(jigsawData.board.image);
         const imageSourceRatio = imageSourceWidth / imageSourceHeight;
 
         let width, height;
@@ -151,7 +158,7 @@ function Game() {
     };
 
     const showPiece = piece => {
-        piece.visible = true;
+        piece.visibleRun = true;
         /*const nextMaxZIndex = pieces.reduce((pieceMaxZIndex, piece) =>
             ((pieceMaxZIndex.zIndex > piece.zIndex) ? pieceMaxZIndex : piece)
         )[0].zIndex + 1;
@@ -161,7 +168,7 @@ function Game() {
 
     const handleTouch = e => {
         const allTouches = e.nativeEvent.touches;
-        setTouches(allTouches);
+        //setTouches(allTouches);
         console.log('START: ' + allTouches.length);
         console.log(allTouches);
 
@@ -184,9 +191,13 @@ function Game() {
                 hit = hit && (numHit > 0);
             }
             if (hit) {
-                if (!piece.visible) {
-                    piece.visible = true;
+                if (!piece.visibleRun) {
+                    piece.visibleRun = true;
                     setPieces(pieces.slice());
+
+                    if (isGameEnd()) {
+                        setGameEnd(true);
+                    }
                 }
                 break;
             }
@@ -195,16 +206,68 @@ function Game() {
         return false;
     };
 
+    const isGameEnd = () => {
+        return pieces.reduce(
+            (allPiecesVisible, piece) => allPiecesVisible && piece.visibleRun,
+            true,
+        );
+    };
+
+    const newGame = () => {
+        gameIndex++;
+        if (gameIndex >= Constants.JIGSAW_DATA.length) {
+            Alert.alert(
+                'Game Over',
+                'Do you want to restart game from the first level?',
+                [
+                    {
+                        text: 'Cancel',
+                        onPress: () => console.log('Cancel pressed'),
+                        style: 'cancel',
+                    },
+                    {
+                        text: 'OK',
+                        onPress: () => {
+                            gameIndex = 0;
+                            setGameEnd(false);
+                            setJigsawData(Constants.JIGSAW_DATA[gameIndex]);
+
+                            const pieces = Constants.JIGSAW_DATA[gameIndex].pieces;
+                            pieces.forEach((piece, index) => {
+                                piece.visibleRun = null;
+                            });
+                            setPieces(pieces);
+                        },
+                    },
+                ],
+                {cancelable: false},
+            );
+        } else {
+            setGameEnd(false);
+            setJigsawData(Constants.JIGSAW_DATA[gameIndex]);
+
+            const pieces = Constants.JIGSAW_DATA[gameIndex].pieces;
+            pieces.forEach((piece, index) => {
+               piece.visibleRun = null;
+            });
+            setPieces(pieces);
+        }
+    };
+
+    const handlePressNextLevelButton = () => {
+        /*pieces.forEach(piece => piece.visibleRun = false);
+        setPieces(pieces.slice());
+        setGameEnd(false);*/
+        newGame();
+    };
+
     return (
         <View style={{flex: 1}}>
             <StatusBar barStyle="dark-content"/>
             <SafeAreaView style={{flex: 1}}>
                 <Button
-                    title={'CLEAR'}
-                    onPress={() => {
-                        pieces.forEach(piece => piece.visible = false);
-                        setPieces(pieces.slice());
-                    }}
+                    title={'NEXT LEVEL'}
+                    onPress={handlePressNextLevelButton}
                 />
                 {/*<View>
                     <Text style={[styles.text, {textAlign: 'center', padding: 8}]}>{touches.length > 0 ? `มีการแตะภาพ ${touches.length} ตำแหน่ง` : 'ยังไม่มีการแตะภาพ'}</Text>
@@ -224,7 +287,7 @@ function Game() {
                         style={{width: boardWidth, height: boardHeight, borderWidth: 0, borderColor: '#ccc'}}>
                         <ImageBackground
                             style={{backgroundColor: 'black', justifyContent: 'center', alignItems: 'center', width: '100%', height: '100%'}}
-                            source={MODE === 1 ? boardImage : null}
+                            source={MODE === 1 ? jigsawData.board.image : null}
                             resizeMode={'contain'}
                         >
                             {pieces.map((piece, index) => {
@@ -256,19 +319,19 @@ function Game() {
                                     >
                                         <Image
                                             style={pieceStyle}
-                                            source={piece.visible ? piece.image : null}
+                                            source={piece.visibleRun ? piece.image : null}
                                         />
                                     </TouchableOpacity>*/
                                 return (
                                     <Image
                                         key={index}
                                         style={[styles.pieceTouchable, pieceStyle, touchableStyle]}
-                                        source={piece.visible ? piece.image : null}
+                                        source={piece.visibleRun ? piece.image : null}
                                     />
                                 );
                             })}
 
-                            {SHOW_TOUCH_POINTS && touchPoints.map((point, index) => (
+                            {SHOW_TOUCH_POINTS && !gameEnd && touchPoints.map((point, index) => (
                                 <View
                                     key={index}
                                     style={{

@@ -1,6 +1,6 @@
 //export const TEST = 'test';
 export const JIGSAW_DATA = [
-    // ภาพ 1
+    // ภาพ 6 ชิ้น
     {
         board: {
             image: require('../../assets/images/jigsaw/01/board.jpg'),
@@ -11,45 +11,66 @@ export const JIGSAW_DATA = [
                 image: require('../../assets/images/jigsaw/01/pieces/01.png'),
                 left: 0, top: 0,
                 visible: false,
+                touches: [
+                    {x: 70, y: 70},
+                    {x: 270, y: 300},
+                ],
             },
             {
                 image: require('../../assets/images/jigsaw/01/pieces/02.png'),
                 left: 308, top: 0,
                 visible: false,
+                touches: [
+                    {x: 490, y: 100},
+                    {x: 490, y: 300},
+                ],
             },
             {
                 image: require('../../assets/images/jigsaw/01/pieces/03.png'),
                 right: -2, top: 0,
                 visible: false,
+                touches: [
+                    {x: 660, y: 190},
+                    {x: 890, y: 70},
+                ],
             },
             {
                 image: require('../../assets/images/jigsaw/01/pieces/04.png'),
                 left: 0, bottom: 0,
                 visible: false,
+                touches: [
+                    {x: 70, y: 480},
+                    {x: 70, y: 680},
+                ],
             },
             {
                 image: require('../../assets/images/jigsaw/01/pieces/05.png'),
                 left: 205, bottom: 0,
                 visible: false,
+                touches: [
+                    {x: 350, y: 580},
+                    {x: 600, y: 580},
+                ],
             },
             {
                 image: require('../../assets/images/jigsaw/01/pieces/06.png'),
                 right: -1, bottom: 0,
                 visible: false,
+                touches: [
+                    {x: 720, y: 700},
+                    {x: 800, y: 420},
+                ],
             },
         ],
     },
 
-    // ภาพ 2
-    {},
-
-    // ภาพ 3
+    // ภาพ 9 ชิ้น
     {
         board: {
             image: require('../../assets/images/jigsaw/03/board.jpg'),
         },
         sound: 'music.m4a',
-        /*
+        /* resize ขนาดตัวต่อแต่ละชิ้น โดยคูณด้วย 963 และหารด้วย 1283
             (963 * x) / 1283
             1: (963 * 582) / 1283 = 436.84
             2: (963 * 462) / 1283 = 346.77
